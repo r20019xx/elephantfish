@@ -3,7 +3,7 @@ import re
 import time
 import sys
 
-import elephantfish
+import algorithms.elephantfish as elephantfish
 
 ################################################################################
 # This module contains functions used by test.py and xboard.py.

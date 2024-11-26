@@ -16,7 +16,7 @@ import random
 import unittest
 import warnings
 
-import elephantfish
+import algorithms.elephantfish as elephantfish
 import tools
 
 ###############################################################################
