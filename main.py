@@ -1,19 +1,21 @@
 import sys, time, re
 from tools import mrender
-from algorithms.elephantfish import Searcher, Position, initial
+from algorithms.elephantfish import Position, initial
+from algorithms.elephantfish_pvs import Searcher as searcher_red
+from algorithms.elephantfish_alphabeta import Searcher as searcher_black
 
 
 def write(message, log_file='debug.log'):
     """
     Write a message to the specified log file.
     """
-    # try:
-    #     # print(f"Writing message: {message} to log file: {log_file}")
-    #     with open(log_file, mode='a', encoding='utf-8') as log:
-    #         log.write(f"{message}\n")
-    # except IOError as error:
-    #     print(f"Failed to write to {log_file}: {error}")
-    #     raise
+    try:
+        # print(f"Writing message: {message} to log file: {log_file}")
+        with open(log_file, mode='a', encoding='utf-8') as log:
+            log.write(f"{message}\n")
+    except IOError as error:
+        print(f"Failed to write to {log_file}: {error}")
+        raise
 
 
 def parse_position(command, hist):
@@ -71,7 +73,7 @@ def render(i):
     return chr(fil + ord('a')) + str(-rank)
 
 
-def handle_go_command(command, hist, searcher):
+def handle_go_command(command, hist, searcher_red, searcher_black):
     think_time = 5
     tokens = command.split()
     if 'movetime' in tokens:
@@ -81,10 +83,11 @@ def handle_go_command(command, hist, searcher):
 
     # If is_black_turn is True, the engine is playing black (rotate board).
     is_black_turn = len(hist) % 2 == 0
-    search_position = hist[-1].rotate() if is_black_turn else hist[-1]
+    # search_position = hist[-1].rotate() if is_black_turn else hist[-1]
     write('BLACK Turn' if is_black_turn else 'RED Turn')
 
     # Search for the best move
+    searcher = searcher_black if is_black_turn else searcher_red
     for depth, move, score in searcher.search(hist[-1], hist):
         elapsed_time = int((time.time() - start) * 1000)
 
@@ -121,7 +124,8 @@ def handle_go_command(command, hist, searcher):
 
 def uci_loop():
     hist = [Position(initial, 0)]
-    searcher = Searcher()
+    red = searcher_red()
+    black = searcher_black()
     while True:
         command = sys.stdin.readline().strip()
         write('Command: ' + command)
@@ -135,11 +139,12 @@ def uci_loop():
             sys.stdout.flush()
         elif command == 'ucinewgame' or command == 'stop':
             hist = [Position(initial, 0)]
-            searcher = Searcher()
+            red = searcher_red()
+            black = searcher_black()
         elif command.startswith('position'):
             parse_position(command, hist)
         elif command.startswith('go'):
-            handle_go_command(command, hist, searcher)
+            handle_go_command(command, hist, red, black)
         elif command == 'quit':
             break
         else:
